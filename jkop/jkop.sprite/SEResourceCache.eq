@@ -44,8 +44,11 @@ public class SEResourceCache
 	public virtual void cleanup() {
 		Log.debug("SEResourceCache: Cleaning up cached resources ..");
 		if(images != null) {
-			foreach(var img in images.iterate_values()) {
-				release_texture(img);
+			foreach(SEImage img in images.iterate_values()) {
+				var txt = img.get_texture();
+				if(txt != null) {
+					release_texture(txt);
+				}
 			}
 			images = null;
 		}
@@ -171,13 +174,20 @@ public class SEResourceCache
 		return(true);
 	}
 
-	public bool prepare_image(String id, String resid, double width, double height = -1.0) {
+	public SEImage prepare_image(String aid, String resid, double width, double height = -1.0) {
+		if(String.is_empty(resid)) {
+			return(null);
+		}
+		var id = aid;
+		if(String.is_empty(id)) {
+			id = "%s@%fx%f".printf().add(resid).add(width).add(height).to_string();
+		}
 		if(images == null) {
 			images = HashTable.create();
 		}
-		var oo = images.get(id);
+		var oo = images.get(id) as SEImage;
 		if(oo != null) {
-			return(true);
+			return(oo);
 		}
 		var ars = resid;
 		if(ars == null) {
@@ -192,7 +202,7 @@ public class SEResourceCache
 		}
 		if(img == null) {
 			Log.error("Failed to read image resource: `%s'".printf().add(ars));
-			return(false);
+			return(null);
 		}
 		if(width > 0.0 || height > 0.0) {
 			var nw = width, nh = height;
@@ -207,26 +217,76 @@ public class SEResourceCache
 			}
 			if(img == null) {
 				Log.error("Failed to scale image `%s' as %f x %f".printf().add(ars).add(nw).add(nh));
-				return(false);
+				return(null);
 			}
 		}
 		var txt = image_to_texture(img);
 		if(txt == null) {
 			Log.error("Preparing image `%s': Failed to convert image to texture".printf().add(id));
-			return(false);
+			return(null);
 		}
-		images.set(id, txt);
+		var v = SEImage.for_texture(txt);
+		images.set(id, v);
 		Log.debug("SEResourceCache: Prepared image `%s' (%dx%dpx)".printf().add(id).add(img.get_width()).add(img.get_height()));
-		return(true);
+		return(v);
 	}
 
 	public Object get_texture(String id) {
 		if(images != null) {
-			var v = images.get(id);
+			var v = images.get(id) as SEImage;
 			if(v != null) {
-				return(v);
+				return(v.as_texture(this));
 			}
 		}
 		return(null);
+	}
+
+	IFDEF("enable_foreign_api")
+	{
+		public void releaseTexture(Object o) {
+			release_texture(o);
+		}
+		public Frame getFrame() {
+			return(frame);
+		}
+		public bool prepareFont(strptr id, strptr details, double height) {
+			return(prepare_font(String.for_strptr(id), String.for_strptr(details), height));
+		}
+		public Object imageToTexture(Image img) {
+			return(image_to_texture(img));
+		}
+		public Image createImageForText(strptr text, strptr fontid) {
+			return(create_image_for_text(String.for_strptr(text), String.for_strptr(fontid)));
+		}
+		public Object createTextureForText(strptr text, strptr fontid) {
+			return(create_texture_for_text(String.for_strptr(text), String.for_strptr(fontid)));
+		}
+		public Array getImageSheet(strptr id) {
+			return(get_image_sheet(String.for_strptr(id)));
+		}
+		public bool prepareImageSheet(strptr id, strptr resid, int cols, int rows, int max, double width, double height) {
+			return(prepare_image_sheet(
+					String.for_strptr(id),
+			String.for_strptr(resid),
+				cols, rows, max, width, height));
+		}
+		public SEImage prepareImage(strptr id, double width) {
+			return(prepareImageWithDetails(null, id, width, -1));
+		}
+		public SEImage prepareImageWithSize(strptr id, double width, double height) {
+			return(prepareImageWithDetails(null, id, width, height));
+		}
+		public SEImage prepareImageWithDefaultSize(strptr id) {
+			return(prepareImageWithDetails(null, id, -1, -1));
+		}
+		public SEImage prepareImageWithDetails(strptr id, strptr resid, double width, double height) {
+			return(prepare_image(
+				String.for_strptr(id),
+				String.for_strptr(resid),
+				width, height));
+		}
+		public Object getTexture(strptr id) {
+			return(get_texture(String.for_strptr(id)));
+		}
 	}
 }

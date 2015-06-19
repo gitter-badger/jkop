@@ -38,12 +38,16 @@ public class SEScene : FrameController, Scene, TransferrableScene, SEElementCont
 	property bool debug = false;
 	property bool do_cleanup_backend = true;
 	property bool accept_volume_keys = false;
+	property bool handle_escape_back = true;
 
 	public SEScene() {
 		entities = LinkedList.create();
 		pointers = LinkedList.create();
 		keys_pressed = HashTable.create();
 		pointer_listeners = LinkedList.create();
+		IFDEF("target_html") {
+			handle_escape_back = false;
+		}
 	}
 
 	public bool transfer_from(Scene scene) {
@@ -129,10 +133,16 @@ public class SEScene : FrameController, Scene, TransferrableScene, SEElementCont
 	}
 
 	public virtual void on_scene_shown() {
+		IFDEF("enable_foreign_api") {
+			onSceneShown();
+		}
 	}
 
 	public virtual void on_scene_hidden() {
 		do_switch_scene = true;
+		IFDEF("enable_foreign_api") {
+			onSceneHidden();
+		}
 	}
 
 	class ShowSceneListener : SEAnimationListener
@@ -220,24 +230,28 @@ public class SEScene : FrameController, Scene, TransferrableScene, SEElementCont
 		try_initialize();
 	}
 
+	void terminate(int v) {
+		SystemEnvironment.terminate(v);
+	}
+
 	void try_initialize() {
 		if(is_initialized == false && get_scene_width() > 0 && get_scene_height() > 0) {
-			is_initialized = true;
 			if(backend == null) {
 				backend = create_backend();
 				if(backend == null) {
 					Log.error("Failed to create a backend. Exiting app.");
-					SystemEnvironment.terminate(1);
+					terminate(1);
 				}
 			}
 			if(backend != null) {
+				is_initialized = true;
 				if(started) {
 					backend.start(this);
 				}
 				resource_cache = backend.get_resource_cache();
+				initialize(resource_cache);
+				show_scene(new ShowSceneListener().set_scene(this));
 			}
-			initialize(resource_cache);
-			show_scene(new ShowSceneListener().set_scene(this));
 		}
 	}
 
@@ -299,7 +313,7 @@ public class SEScene : FrameController, Scene, TransferrableScene, SEElementCont
 	}
 
 	public virtual void on_exit_scene_request() {
-		SystemEnvironment.terminate(0);
+		terminate(0);
 	}
 
 	public virtual void on_escape_key_press() {
@@ -307,17 +321,44 @@ public class SEScene : FrameController, Scene, TransferrableScene, SEElementCont
 	}
 
 	public virtual void on_key_press(String name, String str) {
-		if("escape".equals(name) || "back".equals(name)) {
-			on_escape_key_press();
+		if(handle_escape_back) {
+			if("escape".equals(name) || "back".equals(name)) {
+				on_escape_key_press();
+			}
+		}
+		IFDEF("enable_foreign_api") {
+			strptr namep = null;
+			strptr strp = null;
+			if(name != null) {
+				namep = name.to_strptr();
+			}
+			if(str != null) {
+				strp = str.to_strptr();
+			}
+			onKeyPress(namep, strp);
 		}
 	}
 
 	public virtual void on_key_release(String name, String str) {
+		IFDEF("enable_foreign_api") {
+			strptr namep = null;
+			strptr strp = null;
+			if(name != null) {
+				namep = name.to_strptr();
+			}
+			if(str != null) {
+				strp = str.to_strptr();
+			}
+			onKeyRelease(namep, strp);
+		}
 	}
 
 	public virtual void on_pointer_leave(SEPointerInfo pi) {
 		foreach(SEPointerListener pl in pointer_listeners.iterate_reverse()) {
 			pl.on_pointer_move(pi);
+		}
+		IFDEF("enable_foreign_api") {
+			onPointerLeave(pi);
 		}
 	}
 
@@ -325,17 +366,26 @@ public class SEScene : FrameController, Scene, TransferrableScene, SEElementCont
 		foreach(SEPointerListener pl in pointer_listeners.iterate_reverse()) {
 			pl.on_pointer_press(pi);
 		}
+		IFDEF("enable_foreign_api") {
+			onPointerPress(pi);
+		}
 	}
 
 	public virtual void on_pointer_release(SEPointerInfo pi) {
 		foreach(SEPointerListener pl in pointer_listeners.iterate_reverse()) {
 			pl.on_pointer_release(pi);
 		}
+		IFDEF("enable_foreign_api") {
+			onPointerRelease(pi);
+		}
 	}
 
 	public virtual void on_pointer_move(SEPointerInfo pi) {
 		foreach(SEPointerListener pl in pointer_listeners.iterate_reverse()) {
 			pl.on_pointer_move(pi);
+		}
+		IFDEF("enable_foreign_api") {
+			onPointerMove(pi);
 		}
 	}
 
@@ -497,6 +547,9 @@ public class SEScene : FrameController, Scene, TransferrableScene, SEElementCont
 			delta = (double)TimeVal.diff(now, last_tick) / 1000000.0;
 		}
 		if(is_initialized) {
+			foreach(SEEntity t in entities) {
+				t.tick(now, delta);
+			}
 			update(now, delta);
 		}
 		last_tick = now;
@@ -527,9 +580,6 @@ public class SEScene : FrameController, Scene, TransferrableScene, SEElementCont
 	}
 
 	public virtual void update(TimeVal now, double delta) {
-		foreach(SEEntity t in entities) {
-			t.tick(now, delta);
-		}
 	}
 
 	public SEPointerInfo get_pointer_info(int id) {
@@ -566,7 +616,7 @@ public class SEScene : FrameController, Scene, TransferrableScene, SEElementCont
 	public bool is_key_pressed(String name) {
 		return(keys_pressed.get_bool(name, false));
 	}
-	
+
 	public void on_create(String command, Collection args) {
 	}
 	
@@ -610,5 +660,112 @@ public class SEScene : FrameController, Scene, TransferrableScene, SEElementCont
 			return(null);
 		}
 		return(backend.add_layer(x, y, width, height, force_clipped));
+	}
+
+	// The "foreign API"
+
+	IFDEF("enable_foreign_api")
+	{
+		public Size getPreferredSize() {
+			return(get_preferred_size());
+		}
+		public bool transferFrom(Scene scene) {
+			return(transfer_from(scene));
+		}
+		public Iterator iterateEntities() {
+			return(iterate_entities());
+		}
+		public Collection getEntities() {
+			return(entities);
+		}
+		public Frame getFrame() {
+			return(frame);
+		}
+		public int getFrameType() {
+			return(get_frame_type());
+		}
+		public bool hasKeyboard() {
+			return(has_keyboard());
+		}
+		public int getDpi() {
+			return(get_dpi());
+		}
+		public int toPx(strptr s, int dpi = -1) {
+			return(px(String.for_strptr(s), dpi));
+		}
+		public double getSceneWidth() {
+			return(get_scene_width());
+		}
+		public double getSceneHeight() {
+			return(get_scene_height());
+		}
+		public virtual void onSceneShown() {
+		}
+		public virtual void onSceneHidden() {
+		}
+		public void switchScene(FrameController scene) {
+			switch_scene(scene);
+		}
+		public void pushScene(FrameController scene) {
+			push_scene(scene);
+		}
+		public void popScene() {
+			pop_scene();
+		}
+		public void clearEntities() {
+			clear_entities();
+		}
+		public virtual void onKeyPress(strptr name, strptr str) {
+		}
+		public virtual void onKeyRelease(strptr name, strptr str) {
+		}
+		public virtual void onPointerMove(SEPointerInfo pi) {
+		}
+		public virtual void onPointerLeave(SEPointerInfo pi) {
+		}
+		public virtual void onPointerPress(SEPointerInfo pi) {
+		}
+		public virtual void onPointerRelease(SEPointerInfo pi) {
+		}
+		public void endScene(SceneEndListener sel) {
+			end_scene(sel);
+		}
+		public SEEntity addEntity(SEEntity entity) {
+			return(add_entity(entity));
+		}
+		public SEEntity removeEntity(SEEntity entity) {
+			return(remove_entity(entity));
+		}
+		public SEPointerInfo getPointerInfo(int id) {
+			return(get_pointer_info(id));
+		}
+		public void removePointerInfo(int id) {
+			remove_pointer_info(id);
+		}
+		public Iterator iteratePointers() {
+			return(iterate_pointers());
+		}
+		public bool isKeyPressed(strptr name) {
+			return(is_key_pressed(String.for_strptr(name)));
+		}
+		public void setBackground(strptr color) {
+			set_background(Color.instance(String.for_strptr(color)));
+		}
+		public SESprite addSprite() {
+			return(add_sprite());
+		}
+		public SESprite addSpriteForImage(SEImage image) {
+			return(add_sprite_for_image(image));
+		}
+		public SESprite addSpriteForText(strptr text, strptr fontid) {
+			return(add_sprite_for_text(String.for_strptr(text), String.for_strptr(fontid)));
+		}
+		public SESprite addSpriteForColor(strptr color, double width, double height) {
+			return(add_sprite_for_color(
+				Color.instance(String.for_strptr(color)), width, height));
+		}
+		public SELayer addLayer(double x, double y, double width, double height, bool force_clipped) {
+			return(add_layer(x,y,width,height,force_clipped));
+		}
 	}
 }

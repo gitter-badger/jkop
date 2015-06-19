@@ -119,4 +119,16 @@ public class SESurfaceSprite : SESurfaceElement, SESprite, Renderable
 			((Renderable)surface).render(ops);
 		}
 	}
+
+	IFDEF("enable_foreign_api") {
+		public void setImage(strptr image) {
+			set_image(SEImage.for_resource(String.for_strptr(image)));
+		}
+		public void setText(strptr text, strptr fontid) {
+			set_text(String.for_strptr(text), String.for_strptr(fontid));
+		}
+		public void setColor(strptr color, double width, double height) {
+			set_color(Color.instance(String.for_strptr(color)), width, height);
+		}
+	}
 }

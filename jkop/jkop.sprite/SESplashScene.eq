@@ -34,7 +34,9 @@ public class SESplashScene : SEScene
 	int current_logo = -1;
 
 	public SESplashScene() {
-		add_image_centered("eqela_splash_logo", Color.black(), 0.3);
+		if(IconCache.get("eqela_splash_logo", -1, -1, true) != null) {
+			add_image_centered("eqela_splash_logo", Color.black(), 0.3);
+		}
 	}
 
 	void add_logo_info(LogoInfo li) {

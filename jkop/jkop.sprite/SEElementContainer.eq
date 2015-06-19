@@ -23,4 +23,12 @@ public interface SEElementContainer
 	public SESprite add_sprite_for_text(String text, String fontid);
 	public SESprite add_sprite_for_color(Color color, double width, double height);
 	public SELayer add_layer(double x, double y, double width, double height, bool force_clipped = false);
+
+	IFDEF("enable_foreign_api") {
+		public SESprite addSprite();
+		public SESprite addSpriteForImage(SEImage image);
+		public SESprite addSpriteForText(strptr text, strptr fontid);
+		public SESprite addSpriteForColor(strptr color, double width, double height);
+		public SELayer addLayer(double x, double y, double width, double height, bool force_clipped);
+	}
 }

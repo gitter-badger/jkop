@@ -32,4 +32,59 @@ public class SEPointerInfo
 		}
 		return(false);
 	}
+
+	IFDEF("enable_foreign_api") {
+		public int getId() {
+			return(id);
+		}
+		public SEPointerInfo setId(int i) {
+			id = i;
+			return(this);
+		}
+		public int getX() {
+			return(x);
+		}
+		public SEPointerInfo setX(int v) {
+			x = v;
+			return(this);
+		}
+		public int getY() {
+			return(y);
+		}
+		public SEPointerInfo setY(int v) {
+			y = v;
+			return(this);
+		}
+		public bool getPressed() {
+			return(pressed);
+		}
+		public SEPointerInfo setPressed(bool v) {
+			pressed = v;
+			return(this);
+		}
+		public int getPressedX() {
+			return(pressed_x);
+		}
+		public SEPointerInfo setPressedX(int v) {
+			pressed_x = v;
+			return(this);
+		}
+		public int getPressedY() {
+			return(pressed_y);
+		}
+		public SEPointerInfo setPressedY(int v) {
+			pressed_y = v;
+			return(this);
+		}
+		public PointerEvent getLastEvent() {
+			return(last_event);
+		}
+		public SEPointerInfo setLastEvent(PointerEvent ev) {
+			last_event = ev;
+			return(this);
+		}
+		public bool isInside(double sx, double sy, double sw, double sh) {
+			return(is_inside(sx,sy,sw,sh));
+		}
+	}
 }

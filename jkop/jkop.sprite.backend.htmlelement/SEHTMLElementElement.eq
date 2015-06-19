@@ -61,8 +61,8 @@ public class SEHTMLElementElement : SEElement
 			var ix = (int)x;
 			var iy = (int)y;
 			embed {{{
-				ee.style.left = ix;
-				ee.style.top = iy;
+				ee.style.left = "" + ix + "px";
+				ee.style.top = "" + iy + "px";
 			}}}
 		}
 		this.x = x;
@@ -149,5 +149,44 @@ public class SEHTMLElementElement : SEElement
 			}
 		}}}
 		element = null;
+	}
+
+	IFDEF("enable_foreign_api") {
+		public void setRotation(double angle) {
+			set_rotation(angle);
+		}
+		public void setAlpha(double alpha) {
+			set_alpha(alpha);
+		}
+		public void setScale(double scalex, double scaley) {
+			set_scale(scalex, scaley);
+		}
+		public double getX() {
+			return(get_x());
+		}
+		public double getY() {
+			return(get_y());
+		}
+		public double getWidth() {
+			return(get_width());
+		}
+		public double getHeight() {
+			return(get_height());
+		}
+		public double getRotation() {
+			return(get_rotation());
+		}
+		public double getAlpha() {
+			return(get_alpha());
+		}
+		public double getScaleX() {
+			return(get_scale_x());
+		}
+		public double getScaleY() {
+			return(get_scale_y());
+		}
+		public void removeFromContainer() {
+			remove_from_container();
+		}
 	}
 }

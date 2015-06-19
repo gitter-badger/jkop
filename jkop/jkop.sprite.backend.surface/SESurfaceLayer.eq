@@ -106,4 +106,23 @@ public class SESurfaceLayer : SESurfaceElement, SELayer, SEElementContainer
 		}
 		base.remove_from_container();
 	}
+
+	IFDEF("enable_foreign_api") {
+		public SESprite addSprite() {
+			return(add_sprite());
+		}
+		public SESprite addSpriteForImage(SEImage image) {
+			return(add_sprite_for_image(image));
+		}
+		public SESprite addSpriteForText(strptr text, strptr fontid) {
+			return(add_sprite_for_text(String.for_strptr(text), String.for_strptr(fontid)));
+		}
+		public SESprite addSpriteForColor(strptr color, double width, double height) {
+			return(add_sprite_for_color(
+				Color.instance(String.for_strptr(color)), width, height));
+		}
+		public SELayer addLayer(double x, double y, double width, double height, bool force_clipped) {
+			return(add_layer(x,y,width,height,force_clipped));
+		}
+	}
 }

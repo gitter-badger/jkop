@@ -38,4 +38,19 @@ public interface SEElement
 	public double get_scale_x();
 	public double get_scale_y();
 	public void remove_from_container();
+
+	IFDEF("enable_foreign_api") {
+		public void setRotation(double angle);
+		public void setAlpha(double alpha);
+		public void setScale(double scalex, double scaley);
+		public double getX();
+		public double getY();
+		public double getWidth();
+		public double getHeight();
+		public double getRotation();
+		public double getAlpha();
+		public double getScaleX();
+		public double getScaleY();
+		public void removeFromContainer();
+	}
 }

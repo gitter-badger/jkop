@@ -231,4 +231,64 @@ public class SESpriteEntity : SEEntity, SEElement, SESprite
 	public void remove_from_container() {
 		remove_entity();
 	}
+
+	IFDEF("enable_foreign_api") {
+		public bool nextFrame() {
+			return(next_frame());
+		}
+		public SESpriteEntity setXY(double x, double y) {
+			return(set_xy(x, y));
+		}
+		public bool isInside(SEPointerInfo pi) {
+			return(is_inside(pi));
+		}
+		public SESpriteEntity setImageSheet(Array imgs) {
+			return(set_image_sheet(imgs));
+		}
+		public void setImage(strptr image) {
+			set_image(SEImage.for_resource(String.for_strptr(image)));
+		}
+		public void setText(strptr text, strptr fontid) {
+			set_text(String.for_strptr(text), String.for_strptr(fontid));
+		}
+		public void setColor(strptr color, double width, double height) {
+			set_color(Color.instance(String.for_strptr(color)), width, height);
+		}
+		public void setRotation(double angle) {
+			set_rotation(angle);
+		}
+		public void setAlpha(double alpha) {
+			set_alpha(alpha);
+		}
+		public void setScale(double scalex, double scaley) {
+			set_scale(scalex, scaley);
+		}
+		public double getX() {
+			return(get_x());
+		}
+		public double getY() {
+			return(get_y());
+		}
+		public double getWidth() {
+			return(get_width());
+		}
+		public double getHeight() {
+			return(get_height());
+		}
+		public double getRotation() {
+			return(get_rotation());
+		}
+		public double getAlpha() {
+			return(get_alpha());
+		}
+		public double getScaleX() {
+			return(get_scale_x());
+		}
+		public double getScaleY() {
+			return(get_scale_y());
+		}
+		public void removeFromContainer() {
+			remove_from_container();
+		}
+	}
 }

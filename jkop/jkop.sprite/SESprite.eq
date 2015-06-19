@@ -25,4 +25,10 @@ public interface SESprite : SEElement
 	public void set_image(SEImage image);
 	public void set_text(String text, String fontid = null);
 	public void set_color(Color color, double width, double height);
+
+	IFDEF("enable_foreign_api") {
+		public void setImage(strptr image);
+		public void setText(strptr text, strptr fontid);
+		public void setColor(strptr color, double width, double height);
+	}
 }
